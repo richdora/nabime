@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nabime</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="memo-panel" aria-label="메모 작성">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Private memo</p>
+            <h1>Nabime</h1>
+          </div>
+          <button class="ghost-button" id="newMemoButton" type="button">새 메모</button>
+        </header>
+
+        <form id="memoForm" class="editor">
+          <label class="field">
+            <span>제목</span>
+            <input id="titleInput" name="title" type="text" placeholder="오늘의 메모" autocomplete="off" />
+          </label>
+
+          <label class="field body-field">
+            <span>내용</span>
+            <textarea id="bodyInput" name="body" placeholder="생각을 적어두세요"></textarea>
+          </label>
+
+          <div class="attachment-row">
+            <input id="photoInput" type="file" accept="image/jpeg,image/png,image/tiff" hidden />
+            <button class="attach-button" id="attachButton" type="button" title="위치 정보가 있는 사진 첨부">
+              <span aria-hidden="true">+</span>
+              사진 첨부
+            </button>
+            <div id="photoStatus" class="photo-status">첨부된 사진 없음</div>
+          </div>
+
+          <div id="photoPreview" class="photo-preview" hidden>
+            <img id="previewImage" alt="첨부된 사진 미리보기" />
+            <div>
+              <strong>위치 정보 저장됨</strong>
+              <span id="gpsText"></span>
+            </div>
+            <button id="removePhotoButton" class="icon-button" type="button" title="사진 제거">x</button>
+          </div>
+
+          <label id="rangeField" class="field range-field" hidden>
+            <span>열람가능 범위(range)</span>
+            <select id="rangeSelect" name="range">
+              <option value="50">50m</option>
+              <option value="100">100m</option>
+              <option value="1000">1km</option>
+              <option value="10000">10km</option>
+            </select>
+          </label>
+
+          <div class="actions">
+            <button class="primary-button" type="submit">저장</button>
+            <button class="danger-button" id="deleteButton" type="button" hidden>삭제</button>
+          </div>
+        </form>
+      </section>
+
+      <aside class="list-panel" aria-label="메모 목록">
+        <div class="search-wrap">
+          <input id="searchInput" type="search" placeholder="메모 검색" />
+        </div>
+        <div id="memoList" class="memo-list"></div>
+      </aside>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
