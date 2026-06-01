@@ -39,6 +39,62 @@ textarea {
   min-height: 100vh;
 }
 
+.shared-view {
+  min-height: 100vh;
+  padding: 32px;
+}
+
+.shared-shell {
+  width: min(920px, 100%);
+  margin: 0 auto;
+}
+
+.shared-header {
+  margin-bottom: 24px;
+}
+
+.shared-card {
+  display: grid;
+  grid-template-columns: minmax(260px, 420px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.shared-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #d8dee8;
+}
+
+.shared-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.shared-content h2 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.lock-message {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.shared-body {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
 .memo-panel {
   display: flex;
   flex-direction: column;
@@ -147,6 +203,8 @@ h1 {
 
 .attach-button,
 .primary-button,
+.share-button,
+.map-button,
 .ghost-button,
 .danger-button,
 .icon-button {
@@ -182,9 +240,20 @@ h1 {
 }
 
 .primary-button,
+.share-button,
 .ghost-button,
 .danger-button {
   padding: 0 18px;
+}
+
+.share-button {
+  border: 1px solid var(--accent);
+  background: #ffffff;
+  color: var(--accent-dark);
+}
+
+.share-button:hover {
+  background: #e7f1f4;
 }
 
 .primary-button:hover,
@@ -236,6 +305,20 @@ h1 {
   color: var(--muted);
   font-size: 13px;
   overflow-wrap: anywhere;
+}
+
+.map-button {
+  min-height: 34px;
+  margin-top: 10px;
+  padding: 0 12px;
+  border: 1px solid var(--accent);
+  background: #ffffff;
+  color: var(--accent-dark);
+  font-size: 13px;
+}
+
+.map-button:hover {
+  background: #e7f1f4;
 }
 
 .icon-button {
@@ -323,6 +406,14 @@ h1 {
 
 @media (max-width: 860px) {
   .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .shared-view {
+    padding: 22px;
+  }
+
+  .shared-card {
     grid-template-columns: 1fr;
   }
 

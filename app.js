@@ -10,9 +10,12 @@ const state = {
   memos: loadMemos(),
   activeId: null,
   photo: null,
+  sharedMemo: null,
 };
 
 const els = {
+  appShell: document.querySelector("#appShell"),
+  sharedView: document.querySelector("#sharedView"),
   form: document.querySelector("#memoForm"),
   title: document.querySelector("#titleInput"),
   body: document.querySelector("#bodyInput"),
@@ -22,24 +25,45 @@ const els = {
   photoPreview: document.querySelector("#photoPreview"),
   previewImage: document.querySelector("#previewImage"),
   gpsText: document.querySelector("#gpsText"),
+  mapButton: document.querySelector("#mapButton"),
   rangeField: document.querySelector("#rangeField"),
   rangeSelect: document.querySelector("#rangeSelect"),
   removePhotoButton: document.querySelector("#removePhotoButton"),
+  shareButton: document.querySelector("#shareButton"),
   deleteButton: document.querySelector("#deleteButton"),
   newMemoButton: document.querySelector("#newMemoButton"),
   search: document.querySelector("#searchInput"),
   list: document.querySelector("#memoList"),
+  sharedImage: document.querySelector("#sharedImage"),
+  sharedTitle: document.querySelector("#sharedTitle"),
+  sharedLockMessage: document.querySelector("#sharedLockMessage"),
+  revealButton: document.querySelector("#revealButton"),
+  sharedBody: document.querySelector("#sharedBody"),
 };
 
 els.attachButton.addEventListener("click", () => els.photoInput.click());
 els.photoInput.addEventListener("change", handlePhotoSelect);
 els.removePhotoButton.addEventListener("click", clearPhoto);
+els.mapButton.addEventListener("click", openCurrentMemoMap);
 els.form.addEventListener("submit", saveMemo);
+els.shareButton.addEventListener("click", shareCurrentMemo);
 els.deleteButton.addEventListener("click", deleteActiveMemo);
 els.newMemoButton.addEventListener("click", startNewMemo);
 els.search.addEventListener("input", renderList);
+els.revealButton.addEventListener("click", revealSharedMemo);
 
-renderList();
+initApp();
+
+function initApp() {
+  const sharedId = new URLSearchParams(window.location.search).get("shared");
+
+  if (sharedId) {
+    renderSharedMemo(sharedId);
+    return;
+  }
+
+  renderList();
+}
 
 function loadMemos() {
   try {
@@ -69,7 +93,7 @@ async function handlePhotoSelect(event) {
       return;
     }
 
-    const dataUrl = await fileToDataUrl(file);
+    const dataUrl = await fileToPreviewDataUrl(file);
     state.photo = {
       name: file.name,
       type: file.type,
@@ -264,6 +288,41 @@ function fileToDataUrl(file) {
   });
 }
 
+async function fileToPreviewDataUrl(file) {
+  const objectUrl = URL.createObjectURL(file);
+
+  try {
+    const image = await loadImage(objectUrl);
+    const maxSize = 1200;
+    const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
+    const width = Math.max(1, Math.round(image.width * scale));
+    const height = Math.max(1, Math.round(image.height * scale));
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    canvas.width = width;
+    canvas.height = height;
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, width, height);
+    context.drawImage(image, 0, 0, width, height);
+
+    return canvas.toDataURL("image/jpeg", 0.82);
+  } catch {
+    return fileToDataUrl(file);
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
 function saveMemo(event) {
   event.preventDefault();
 
@@ -271,36 +330,42 @@ function saveMemo(event) {
   const title = els.title.value.trim() || "제목 없는 메모";
   const body = els.body.value.trim();
   const existing = state.memos.find((memo) => memo.id === state.activeId);
+  const previousMemos = JSON.stringify(state.memos);
 
-  if (existing) {
-    const selectedRange = state.photo ? getSelectedRange() : null;
-    existing.title = title;
-    existing.body = body;
-    existing.photo = state.photo;
-    existing.location = state.photo?.gps || null;
-    existing.range = selectedRange;
-    existing.rangeMeters = selectedRange?.meters || null;
-    existing.updatedAt = now;
-  } else {
-    const selectedRange = state.photo ? getSelectedRange() : null;
-    const memo = {
-      id: crypto.randomUUID(),
-      title,
-      body,
-      photo: state.photo,
-      location: state.photo?.gps || null,
-      range: selectedRange,
-      rangeMeters: selectedRange?.meters || null,
-      createdAt: now,
-      updatedAt: now,
-    };
-    state.memos.unshift(memo);
-    state.activeId = memo.id;
+  try {
+    if (existing) {
+      const selectedRange = state.photo ? getSelectedRange() : null;
+      existing.title = title;
+      existing.body = body;
+      existing.photo = state.photo;
+      existing.location = state.photo?.gps || null;
+      existing.range = selectedRange;
+      existing.rangeMeters = selectedRange?.meters || null;
+      existing.updatedAt = now;
+    } else {
+      const selectedRange = state.photo ? getSelectedRange() : null;
+      const memo = {
+        id: crypto.randomUUID(),
+        title,
+        body,
+        photo: state.photo,
+        location: state.photo?.gps || null,
+        range: selectedRange,
+        rangeMeters: selectedRange?.meters || null,
+        createdAt: now,
+        updatedAt: now,
+      };
+      state.memos.unshift(memo);
+      state.activeId = memo.id;
+    }
+
+    persistMemos();
+    renderList();
+    renderEditor();
+  } catch {
+    state.memos = JSON.parse(previousMemos);
+    alert("메모를 저장하지 못했습니다. 사진 용량을 줄이거나 다시 시도해 주세요.");
   }
-
-  persistMemos();
-  renderList();
-  renderEditor();
 }
 
 function deleteActiveMemo() {
@@ -310,6 +375,206 @@ function deleteActiveMemo() {
   persistMemos();
   startNewMemo();
   renderList();
+}
+
+async function shareCurrentMemo() {
+  const memo = state.memos.find((item) => item.id === state.activeId);
+
+  if (!memo) {
+    alert("공유하려면 먼저 메모를 저장해 주세요.");
+    return;
+  }
+
+  const shareUrl = getShareUrl(memo.id);
+  const text = `${buildShareText()}\n\n공유 링크: ${shareUrl}`;
+  const shareData = {
+    text,
+  };
+
+  try {
+    if (navigator.share) {
+      await navigator.share(shareData);
+      return;
+    }
+
+    await navigator.clipboard.writeText(text);
+    alert("공유할 메모 내용을 클립보드에 복사했습니다.");
+  } catch (error) {
+    if (error?.name === "AbortError") return;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      alert("공유할 메모 내용을 클립보드에 복사했습니다.");
+    } catch {
+      alert("공유를 완료하지 못했습니다. 브라우저 권한을 확인해 주세요.");
+    }
+  }
+}
+
+function getShareUrl(id) {
+  const url = new URL(window.location.href);
+  url.search = `?shared=${encodeURIComponent(id)}`;
+  url.hash = "";
+  return url.toString();
+}
+
+function openCurrentMemoMap() {
+  const location = getCurrentLocation();
+
+  if (!location) {
+    alert("저장된 위치 정보가 없습니다.");
+    return;
+  }
+
+  const latitude = encodeURIComponent(location.latitude);
+  const longitude = encodeURIComponent(location.longitude);
+  const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+  window.open(url, "_blank", "noopener");
+}
+
+function getCurrentLocation() {
+  if (state.photo?.gps) return state.photo.gps;
+
+  const memo = state.memos.find((item) => item.id === state.activeId);
+  return memo?.location || memo?.photo?.gps || null;
+}
+
+function renderSharedMemo(id) {
+  const memo = state.memos.find((item) => item.id === id);
+
+  els.appShell.hidden = true;
+  els.sharedView.hidden = false;
+
+  if (!memo) {
+    state.sharedMemo = null;
+    els.sharedImage.hidden = true;
+    els.sharedTitle.textContent = "메모를 찾을 수 없습니다";
+    els.sharedLockMessage.textContent =
+      "이 공유 링크는 아직 이 브라우저에서만 확인할 수 있습니다. 서버 저장 기능이 붙으면 다른 사람도 같은 링크로 볼 수 있습니다.";
+    els.revealButton.hidden = true;
+    els.sharedBody.hidden = true;
+    return;
+  }
+
+  state.sharedMemo = memo;
+  els.sharedImage.hidden = !memo.photo?.dataUrl;
+  els.sharedImage.src = memo.photo?.dataUrl || "";
+  els.sharedTitle.textContent = memo.title;
+  els.sharedBody.textContent = memo.body || "내용 없음";
+  els.sharedBody.hidden = true;
+  els.revealButton.hidden = false;
+  updateSharedLockMessage();
+}
+
+async function revealSharedMemo() {
+  const memo = state.sharedMemo;
+  const target = memo ? memo.location || memo.photo?.gps : null;
+  const rangeMeters = memo ? getMemoRangeMeters(memo) : null;
+
+  if (!target || !rangeMeters) {
+    alert("위치 기반 열람 정보가 없습니다.");
+    return;
+  }
+
+  if (!navigator.geolocation) {
+    alert("이 브라우저에서는 현재 위치 확인을 사용할 수 없습니다.");
+    return;
+  }
+
+  els.revealButton.disabled = true;
+  els.revealButton.textContent = "위치 확인 중";
+
+  try {
+    const current = await getBrowserLocation();
+    const distance = getDistanceMeters(current, target);
+
+    if (distance <= rangeMeters) {
+      els.sharedBody.hidden = false;
+      els.sharedLockMessage.textContent = "열람 범위 안에 있어 메모 내용을 볼 수 있습니다.";
+      els.revealButton.hidden = true;
+      return;
+    }
+
+    els.sharedLockMessage.textContent =
+      `현재 위치는 사진이 표시된 위치에서 약 ${formatDistance(distance)} 떨어져 있습니다. ` +
+      `사진이 표시된 위치에서 ${RANGE_LABELS[rangeMeters]} 이내로 이동하셔야 메모의 내용을 볼 수 있습니다.`;
+  } catch {
+    alert("현재 위치를 확인하지 못했습니다. 브라우저 위치 권한을 허용해 주세요.");
+  } finally {
+    els.revealButton.disabled = false;
+    els.revealButton.textContent = "내용보기";
+  }
+}
+
+function updateSharedLockMessage() {
+  const rangeMeters = getMemoRangeMeters(state.sharedMemo);
+  const rangeLabel = RANGE_LABELS[rangeMeters] || "열람가능 범위";
+
+  els.sharedLockMessage.textContent =
+    `사진이 표시된 위치에서 ${rangeLabel} 이내로 이동하셔야 메모의 내용을 볼 수 있습니다.`;
+}
+
+function getBrowserLocation() {
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      reject,
+      {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 0,
+      },
+    );
+  });
+}
+
+function getDistanceMeters(from, to) {
+  const earthRadiusMeters = 6371000;
+  const lat1 = degreesToRadians(from.latitude);
+  const lat2 = degreesToRadians(to.latitude);
+  const latDelta = degreesToRadians(to.latitude - from.latitude);
+  const lonDelta = degreesToRadians(to.longitude - from.longitude);
+  const a =
+    Math.sin(latDelta / 2) * Math.sin(latDelta / 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(lonDelta / 2) * Math.sin(lonDelta / 2);
+
+  return earthRadiusMeters * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function degreesToRadians(degrees) {
+  return (degrees * Math.PI) / 180;
+}
+
+function formatDistance(meters) {
+  if (meters >= 1000) return `${(meters / 1000).toFixed(1)}km`;
+  return `${Math.round(meters)}m`;
+}
+
+function buildShareText() {
+  const lines = [];
+  const title = els.title.value.trim() || "제목 없는 메모";
+  const body = els.body.value.trim();
+
+  lines.push(title);
+
+  if (body) {
+    lines.push("", body);
+  }
+
+  if (state.photo?.gps) {
+    lines.push(
+      "",
+      `위치: ${state.photo.gps.latitude.toFixed(6)}, ${state.photo.gps.longitude.toFixed(6)}`,
+      `열람가능 범위: ${RANGE_LABELS[Number(els.rangeSelect.value)]}`,
+    );
+  }
+
+  return lines.join("\n");
 }
 
 function startNewMemo() {

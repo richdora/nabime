@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main class="app-shell">
+    <main id="appShell" class="app-shell">
       <section class="memo-panel" aria-label="메모 작성">
         <header class="topbar">
           <div>
@@ -42,6 +42,7 @@
             <div>
               <strong>위치 정보 저장됨</strong>
               <span id="gpsText"></span>
+              <button id="mapButton" class="map-button" type="button">위치확인</button>
             </div>
             <button id="removePhotoButton" class="icon-button" type="button" title="사진 제거">x</button>
           </div>
@@ -58,6 +59,7 @@
 
           <div class="actions">
             <button class="primary-button" type="submit">저장</button>
+            <button class="share-button" id="shareButton" type="button">공유</button>
             <button class="danger-button" id="deleteButton" type="button" hidden>삭제</button>
           </div>
         </form>
@@ -69,6 +71,25 @@
         </div>
         <div id="memoList" class="memo-list"></div>
       </aside>
+    </main>
+
+    <main id="sharedView" class="shared-view" hidden>
+      <section class="shared-shell">
+        <header class="shared-header">
+          <p class="eyebrow">Shared memo</p>
+          <h1>Nabime</h1>
+        </header>
+
+        <article class="shared-card">
+          <img id="sharedImage" class="shared-image" alt="공유된 메모 사진" />
+          <div class="shared-content">
+            <h2 id="sharedTitle"></h2>
+            <p id="sharedLockMessage" class="lock-message"></p>
+            <button id="revealButton" class="primary-button" type="button">내용보기</button>
+            <div id="sharedBody" class="shared-body" hidden></div>
+          </div>
+        </article>
+      </section>
     </main>
 
     <script src="./app.js"></script>
