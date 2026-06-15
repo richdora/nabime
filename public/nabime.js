@@ -479,7 +479,7 @@ async function shareCurrentMemo() {
     return;
   }
 
-  const shareUrl = getShareUrl(memo.id);
+  const shareUrl = getShareUrl(memo);
   const shareData = {
     title: memo.title || "Nabime 공유 메모",
     url: shareUrl,
@@ -505,8 +505,11 @@ async function shareCurrentMemo() {
   }
 }
 
-function getShareUrl(id) {
-  return new URL(`/shared/${encodeURIComponent(id)}`, window.location.origin).toString();
+function getShareUrl(memo) {
+  const url = new URL(`/shared/${encodeURIComponent(memo.id)}`, window.location.origin);
+  const version = memo.updatedAt || memo.createdAt || Date.now();
+  url.searchParams.set("v", String(new Date(version).getTime() || version));
+  return url.toString();
 }
 
 function openCurrentMemoMap() {
