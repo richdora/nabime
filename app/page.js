@@ -76,6 +76,35 @@ export default function Home() {
                 삭제
               </button>
             </div>
+
+            <section id="ownerReactionPanel" className="owner-reaction-panel" hidden>
+              <div className="owner-reaction-summary">
+                <div>
+                  <span>받은 하트</span>
+                  <strong id="ownerLikeCount">0개</strong>
+                </div>
+                <div>
+                  <span>댓글</span>
+                  <strong id="ownerCommentCount">0개</strong>
+                </div>
+              </div>
+
+              <div className="owner-comments-header">
+                <h2>댓글 리스트</h2>
+                <span id="ownerCommentPage">1 / 1</span>
+              </div>
+
+              <div id="ownerCommentList" className="owner-comment-list" />
+
+              <div className="owner-comment-nav">
+                <button id="ownerCommentPrev" className="comment-button" type="button">
+                  이전
+                </button>
+                <button id="ownerCommentNext" className="comment-button" type="button">
+                  다음
+                </button>
+              </div>
+            </section>
           </form>
         </section>
 
