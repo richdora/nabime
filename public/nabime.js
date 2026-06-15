@@ -461,10 +461,8 @@ async function shareCurrentMemo() {
   }
 
   const shareUrl = getShareUrl(memo.id);
-  const text = buildShareText(memo);
   const shareData = {
     title: memo.title || "Nabime 공유 메모",
-    text,
     url: shareUrl,
   };
 
@@ -474,13 +472,13 @@ async function shareCurrentMemo() {
       return;
     }
 
-    await navigator.clipboard.writeText(`${text}\n${shareUrl}`);
+    await navigator.clipboard.writeText(shareUrl);
     alert("공유 링크를 클립보드에 복사했습니다.");
   } catch (error) {
     if (error?.name === "AbortError") return;
 
     try {
-      await navigator.clipboard.writeText(`${text}\n${shareUrl}`);
+      await navigator.clipboard.writeText(shareUrl);
       alert("공유 링크를 클립보드에 복사했습니다.");
     } catch {
       alert("공유를 완료하지 못했습니다. 브라우저 권한을 확인해 주세요.");
