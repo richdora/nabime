@@ -23,7 +23,7 @@ export async function generateMetadata({ params }) {
 
   const senderName = getSenderName(memo);
   const title = `${senderName}님이 보낸 비밀메모`;
-  const description = `${senderName}님이 공유한 비밀메모를 확인해 보세요!`;
+  const description = `나만의 비밀메모 Nabime에서 ${senderName}님이 보낸 비밀메모를 확인하세요!`;
   const baseUrl = getBaseUrl();
   const url = `${baseUrl}/shared/${encodeURIComponent(id)}`;
   const imageUrl = `${baseUrl}/api/memos/${encodeURIComponent(id)}/image`;
