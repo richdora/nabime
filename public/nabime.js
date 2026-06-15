@@ -806,6 +806,19 @@ function renderList() {
       item.append(owner);
     }
 
+    const reactions = memo.reactions || {};
+    const reactionMeta = document.createElement("div");
+    reactionMeta.className = "memo-reaction-meta";
+
+    const likeMeta = document.createElement("span");
+    likeMeta.textContent = `하트 ${reactions.likeCount || 0}`;
+
+    const commentMeta = document.createElement("span");
+    commentMeta.textContent = `댓글 ${reactions.comments?.length || 0}`;
+
+    reactionMeta.append(likeMeta, commentMeta);
+    item.append(reactionMeta);
+
     els.list.append(item);
   });
 }
