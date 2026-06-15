@@ -20,6 +20,7 @@ export default function SharedMemoGate({ memo, isOwner, isSignedIn, initialReact
   const [loginPrompt, setLoginPrompt] = useState("");
   const [distanceInfo, setDistanceInfo] = useState(null);
   const [isCheckingDistance, setIsCheckingDistance] = useState(false);
+  const [locationGuide, setLocationGuide] = useState(getFallbackLocationGuide());
   const [reactions, setReactions] = useState(
     initialReactions || {
       likeCount: 0,
@@ -29,6 +30,8 @@ export default function SharedMemoGate({ memo, isOwner, isSignedIn, initialReact
   );
 
   useEffect(() => {
+    setLocationGuide(getLocationGuide());
+
     if (!isOwner && !isRevealed) {
       checkDistance();
     }
@@ -194,22 +197,9 @@ export default function SharedMemoGate({ memo, isOwner, isSignedIn, initialReact
         <>
           <section className="distance-panel" aria-label="사진과의 거리">
             {distanceInfo?.status === "ready" ? (
-              <>
-                <dl>
-                  <div>
-                    <dt>현재 위치</dt>
-                    <dd>{formatCoordinate(distanceInfo.current)}</dd>
-                  </div>
-                  <div>
-                    <dt>사진 위치</dt>
-                    <dd>{formatCoordinate(distanceInfo.target)}</dd>
-                  </div>
-                  <div>
-                    <dt>사진과의 거리</dt>
-                    <dd>{formatDistance(distanceInfo.distance)}</dd>
-                  </div>
-                </dl>
-              </>
+              <p>
+                사진과의 거리 <strong>{formatDistance(distanceInfo.distance)}</strong>
+              </p>
             ) : (
               <p>{isCheckingDistance ? "현재 위치를 확인하고 있습니다." : distanceInfo?.message || "현재 위치를 확인하면 사진과의 거리를 볼 수 있습니다."}</p>
             )}
@@ -220,14 +210,14 @@ export default function SharedMemoGate({ memo, isOwner, isSignedIn, initialReact
           <button className="primary-button" type="button" onClick={revealBody} disabled={isChecking}>
             {isChecking ? "위치 확인 중" : "비밀 메모 보기"}
           </button>
-          <aside className="location-help" aria-label="위치정보 설정 안내">
-            <p>비밀메모를 확인하려면 브라우저의 위치정보 사용을 허용해야 합니다.</p>
-            <ul>
-              <li>iPhone Safari: 주소창의 가가 또는 페이지 설정에서 위치를 허용해 주세요.</li>
-              <li>Mac Safari: Safari 설정의 웹사이트, 위치에서 Nabime를 허용해 주세요.</li>
-              <li>Chrome: 주소창 왼쪽 설정 아이콘에서 위치 권한을 허용해 주세요.</li>
-            </ul>
-          </aside>
+          {distanceInfo?.status !== "ready" ? (
+            <aside className="location-help" aria-label="위치정보 설정 안내">
+              <p>비밀메모를 확인하려면 브라우저의 위치정보 사용을 허용해야 합니다.</p>
+              <ul>
+                <li>{locationGuide}</li>
+              </ul>
+            </aside>
+          ) : null}
         </>
       ) : null}
       {isRevealed ? <div className="shared-body">{body}</div> : null}
@@ -327,10 +317,6 @@ function formatDistance(meters) {
   return `${Math.round(meters)}m`;
 }
 
-function formatCoordinate(location) {
-  return `${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}`;
-}
-
 function getDistanceMeters(from, to) {
   const radius = 6371000;
   const lat1 = toRadians(from.latitude);
@@ -348,4 +334,36 @@ function getDistanceMeters(from, to) {
 
 function toRadians(degrees) {
   return (degrees * Math.PI) / 180;
+}
+
+function getLocationGuide() {
+  if (typeof navigator === "undefined") return getFallbackLocationGuide();
+
+  const agent = navigator.userAgent || "";
+  const isIOS = /iPhone|iPad|iPod/i.test(agent);
+  const isAndroid = /Android/i.test(agent);
+  const isChrome = /CriOS|Chrome/i.test(agent) && !/Edg/i.test(agent);
+  const isSafari = /Safari/i.test(agent) && !/CriOS|Chrome|FxiOS|Edg/i.test(agent);
+
+  if (isIOS && isChrome) {
+    return "iPhone Chrome: 주소창 왼쪽의 사이트 정보 버튼을 누른 뒤 위치 권한을 허용해 주세요. 필요하면 iPhone 설정 앱의 Chrome 위치 권한도 확인해 주세요.";
+  }
+
+  if (isIOS && isSafari) {
+    return "iPhone Safari: 주소창 왼쪽의 페이지 설정 버튼을 누른 뒤 웹사이트 설정에서 위치 권한을 허용해 주세요.";
+  }
+
+  if (isAndroid && isChrome) {
+    return "Android Chrome: 주소창 왼쪽의 사이트 정보 버튼을 누른 뒤 권한에서 위치를 허용해 주세요.";
+  }
+
+  if (isAndroid) {
+    return "Android 브라우저: 주소창 근처의 사이트 정보 또는 권한 메뉴에서 위치 권한을 허용해 주세요.";
+  }
+
+  return getFallbackLocationGuide();
+}
+
+function getFallbackLocationGuide() {
+  return "브라우저 주소창 근처의 사이트 정보 또는 권한 메뉴에서 위치정보 사용을 허용해 주세요.";
 }

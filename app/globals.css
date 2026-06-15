@@ -126,28 +126,15 @@ textarea {
   background: var(--success-bg);
 }
 
-.distance-panel dl {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-}
-
-.distance-panel div {
-  display: grid;
-  grid-template-columns: 88px minmax(0, 1fr);
-  gap: 10px;
-}
-
-.distance-panel dt {
-  color: var(--accent-dark);
-  font-weight: 800;
-}
-
-.distance-panel dd,
 .distance-panel p {
   margin: 0;
   color: var(--muted);
   line-height: 1.5;
+}
+
+.distance-panel strong {
+  color: var(--accent-dark);
+  font-size: 18px;
 }
 
 .distance-button {
