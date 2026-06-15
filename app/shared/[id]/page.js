@@ -4,6 +4,7 @@ import SharedMemoGate from "../../../components/SharedMemoGate";
 import { authOptions } from "../../../lib/auth";
 import { toClientMemo } from "../../../lib/memoMapper";
 import { prisma } from "../../../lib/prisma";
+import { getMemoReactions } from "../../../lib/reactions";
 
 export const dynamic = "force-dynamic";
 
@@ -39,6 +40,7 @@ export default async function SharedMemoPage({ params }) {
   const isOwner = isMemoOwner(memoRecord, session?.user);
   const memo = toClientMemo(memoRecord);
   const publicMemo = isOwner ? memo : { ...memo, body: "" };
+  const reactions = await getMemoReactions(prisma, memo.id, session?.user);
 
   return (
     <main className="shared-view">
@@ -54,7 +56,12 @@ export default async function SharedMemoPage({ params }) {
           ) : null}
           <div className="shared-content">
             <h2>{memo.title}</h2>
-            <SharedMemoGate memo={publicMemo} isOwner={isOwner} />
+            <SharedMemoGate
+              memo={publicMemo}
+              isOwner={isOwner}
+              isSignedIn={Boolean(session?.user)}
+              initialReactions={reactions}
+            />
           </div>
         </article>
       </section>

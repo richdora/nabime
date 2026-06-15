@@ -113,6 +113,137 @@ textarea {
   text-decoration: none;
 }
 
+.reaction-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 8px;
+}
+
+.heart-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid #e4b7bf;
+  border-radius: 8px;
+  background: #fff6f7;
+  color: #9f1239;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.heart-button span {
+  margin-right: 8px;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.heart-button.active {
+  background: #ffe4e8;
+  border-color: #f08aa0;
+}
+
+.comment-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.comment-form input {
+  min-height: 44px;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #ffffff;
+  color: var(--ink);
+}
+
+.comment-button {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--accent-dark);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.comment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.comment-item {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.comment-item strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--accent-dark);
+  font-size: 14px;
+}
+
+.comment-item p,
+.empty-comments {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.login-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(29, 36, 51, 0.42);
+}
+
+.login-modal-card {
+  position: relative;
+  width: min(380px, 100%);
+  padding: 24px;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 18px 48px rgba(29, 36, 51, 0.22);
+}
+
+.login-modal-card h3 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+
+.login-modal-card p {
+  margin: 0 0 18px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: #f2f4f7;
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 800;
+}
+
 .memo-panel {
   display: flex;
   flex-direction: column;

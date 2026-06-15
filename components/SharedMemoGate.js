@@ -1,5 +1,6 @@
 "use client";
 
+import { signIn } from "next-auth/react";
 import { useState } from "react";
 
 const RANGE_LABELS = {
@@ -9,11 +10,21 @@ const RANGE_LABELS = {
   10000: "10km",
 };
 
-export default function SharedMemoGate({ memo, isOwner }) {
+export default function SharedMemoGate({ memo, isOwner, isSignedIn, initialReactions }) {
   const [body, setBody] = useState(isOwner ? memo.body || "내용 없음" : "");
   const [message, setMessage] = useState(getInitialMessage(memo, isOwner));
   const [isChecking, setIsChecking] = useState(false);
   const [isRevealed, setIsRevealed] = useState(isOwner);
+  const [commentText, setCommentText] = useState("");
+  const [isSavingReaction, setIsSavingReaction] = useState(false);
+  const [loginPrompt, setLoginPrompt] = useState("");
+  const [reactions, setReactions] = useState(
+    initialReactions || {
+      likeCount: 0,
+      likedByViewer: false,
+      comments: [],
+    },
+  );
 
   async function revealBody() {
     if (!memo.location || !memo.rangeMeters) {
@@ -51,10 +62,81 @@ export default function SharedMemoGate({ memo, isOwner }) {
       setBody(data.body || "내용 없음");
       setMessage("열람 범위 안에 있어 메모 내용을 볼 수 있습니다.");
       setIsRevealed(true);
+      await refreshReactions();
     } catch {
       alert("현재 위치를 확인하지 못했습니다. 브라우저 위치 권한을 허용해 주세요.");
     } finally {
       setIsChecking(false);
+    }
+  }
+
+  async function toggleLike() {
+    if (!isSignedIn) {
+      setLoginPrompt("좋아요는 Google 로그인 후 사용할 수 있습니다.");
+      return;
+    }
+
+    await saveReaction({ type: "like" });
+  }
+
+  async function submitComment(event) {
+    event.preventDefault();
+
+    if (!isSignedIn) {
+      setLoginPrompt("댓글은 Google 로그인 후 사용할 수 있습니다.");
+      return;
+    }
+
+    const body = commentText.trim();
+
+    if (!body) {
+      alert("댓글 내용을 입력해 주세요.");
+      return;
+    }
+
+    await saveReaction({ type: "comment", body });
+    setCommentText("");
+  }
+
+  async function refreshReactions() {
+    try {
+      const response = await fetch(`/api/memos/${encodeURIComponent(memo.id)}/reactions`);
+      if (!response.ok) return;
+
+      setReactions(await response.json());
+    } catch {
+      // Reactions are helpful, but the memo itself should remain usable without them.
+    }
+  }
+
+  async function saveReaction(payload) {
+    setIsSavingReaction(true);
+
+    try {
+      const response = await fetch(`/api/memos/${encodeURIComponent(memo.id)}/reactions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+
+      if (response.status === 401) {
+        setLoginPrompt("Google 로그인 후 사용할 수 있습니다.");
+        return;
+      }
+
+      if (!response.ok) {
+        alert(data.error || "저장하지 못했습니다.");
+        return;
+      }
+
+      setReactions(data);
+    } catch {
+      alert("저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setIsSavingReaction(false);
     }
   }
 
@@ -67,6 +149,64 @@ export default function SharedMemoGate({ memo, isOwner }) {
         </button>
       ) : null}
       {isRevealed ? <div className="shared-body">{body}</div> : null}
+      {isRevealed ? (
+        <section className="reaction-panel" aria-label="공유 메모 반응">
+          <button
+            className={`heart-button ${reactions.likedByViewer ? "active" : ""}`}
+            type="button"
+            onClick={toggleLike}
+            disabled={isSavingReaction}
+            aria-pressed={reactions.likedByViewer}
+          >
+            <span aria-hidden="true">{reactions.likedByViewer ? "♥" : "♡"}</span>
+            좋아요 {reactions.likeCount}
+          </button>
+
+          <form className="comment-form" onSubmit={submitComment}>
+            <input
+              type="text"
+              value={commentText}
+              onChange={(event) => setCommentText(event.target.value)}
+              onFocus={() => {
+                if (!isSignedIn) setLoginPrompt("댓글은 Google 로그인 후 사용할 수 있습니다.");
+              }}
+              placeholder="짧은 댓글 남기기"
+              maxLength={160}
+            />
+            <button className="comment-button" type="submit" disabled={isSavingReaction}>
+              등록
+            </button>
+          </form>
+
+          <div className="comment-list">
+            {reactions.comments.length ? (
+              reactions.comments.map((comment) => (
+                <article className="comment-item" key={comment.id}>
+                  <strong>{comment.userName}</strong>
+                  <p>{comment.body}</p>
+                </article>
+              ))
+            ) : (
+              <p className="empty-comments">아직 댓글이 없습니다.</p>
+            )}
+          </div>
+        </section>
+      ) : null}
+
+      {loginPrompt ? (
+        <div className="login-modal" role="dialog" aria-modal="true" aria-label="로그인 안내">
+          <div className="login-modal-card">
+            <button className="modal-close" type="button" onClick={() => setLoginPrompt("")}>
+              x
+            </button>
+            <h3>로그인이 필요합니다</h3>
+            <p>{loginPrompt}</p>
+            <button className="primary-button" type="button" onClick={() => signIn("google")}>
+              Google 로그인
+            </button>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 }

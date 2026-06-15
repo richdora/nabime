@@ -23,7 +23,35 @@ model Memo {
   ownerName   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  likes       MemoLike[]
+  comments    MemoComment[]
 
   @@index([ownerId])
   @@index([ownerEmail])
+}
+
+model MemoLike {
+  id        String   @id @default(cuid())
+  memoId    String
+  memo      Memo     @relation(fields: [memoId], references: [id], onDelete: Cascade)
+  userId    String
+  userEmail String
+  userName  String?
+  createdAt DateTime @default(now())
+
+  @@unique([memoId, userId])
+  @@index([memoId])
+}
+
+model MemoComment {
+  id        String   @id @default(cuid())
+  memoId    String
+  memo      Memo     @relation(fields: [memoId], references: [id], onDelete: Cascade)
+  body      String
+  userId    String
+  userEmail String
+  userName  String?
+  createdAt DateTime @default(now())
+
+  @@index([memoId])
 }
