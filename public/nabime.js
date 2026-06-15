@@ -783,23 +783,29 @@ function renderList() {
     item.className = `memo-item${memo.id === state.activeId ? " is-active" : ""}`;
     item.addEventListener("click", () => selectMemo(memo.id));
 
+    const summary = document.createElement("div");
+    summary.className = "memo-item-summary";
+
+    if (memo.photo?.dataUrl) {
+      const thumbnail = document.createElement("img");
+      thumbnail.className = "memo-thumbnail";
+      thumbnail.src = memo.photo.dataUrl;
+      thumbnail.alt = "첨부 사진";
+      summary.append(thumbnail);
+    }
+
+    const text = document.createElement("div");
+    text.className = "memo-item-text";
+
     const title = document.createElement("strong");
     title.textContent = memo.title;
 
     const body = document.createElement("span");
     body.textContent = memo.body || "내용 없음";
 
-    item.append(title, body);
-
-    const location = memo.location || memo.photo?.gps;
-
-    if (location) {
-      const gps = document.createElement("small");
-      const rangeMeters = getMemoRangeMeters(memo);
-      const rangeLabel = rangeMeters ? RANGE_LABELS[rangeMeters] : "";
-      gps.textContent = `GPS ${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}${rangeLabel ? ` · ${rangeLabel}` : ""}`;
-      item.append(gps);
-    }
+    text.append(title, body);
+    summary.append(text);
+    item.append(summary);
 
     if (memo.ownerEmail) {
       const owner = document.createElement("small");

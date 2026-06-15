@@ -683,6 +683,25 @@ h1 {
   box-shadow: inset 4px 0 0 var(--accent);
 }
 
+.memo-item-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.memo-item-text {
+  min-width: 0;
+}
+
+.memo-thumbnail {
+  width: 58px;
+  height: 58px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #eef2f6;
+}
+
 .memo-item strong,
 .memo-item span,
 .memo-item small {
