@@ -12,6 +12,12 @@ const state = {
   photo: null,
   sharedMemo: null,
   currentUser: null,
+  ownerReactions: {
+    memoId: null,
+    likeCount: 0,
+    comments: [],
+    page: 0,
+  },
 };
 
 const els = {
@@ -40,6 +46,13 @@ const els = {
   sharedLockMessage: document.querySelector("#sharedLockMessage"),
   revealButton: document.querySelector("#revealButton"),
   sharedBody: document.querySelector("#sharedBody"),
+  ownerReactionPanel: document.querySelector("#ownerReactionPanel"),
+  ownerLikeCount: document.querySelector("#ownerLikeCount"),
+  ownerCommentCount: document.querySelector("#ownerCommentCount"),
+  ownerCommentPage: document.querySelector("#ownerCommentPage"),
+  ownerCommentList: document.querySelector("#ownerCommentList"),
+  ownerCommentPrev: document.querySelector("#ownerCommentPrev"),
+  ownerCommentNext: document.querySelector("#ownerCommentNext"),
 };
 
 els.attachButton.addEventListener("click", () => els.photoInput.click());
@@ -52,6 +65,8 @@ els.deleteButton.addEventListener("click", deleteActiveMemo);
 els.newMemoButton.addEventListener("click", startNewMemo);
 els.search.addEventListener("input", renderList);
 els.revealButton.addEventListener("click", revealSharedMemo);
+els.ownerCommentPrev?.addEventListener("click", () => changeOwnerCommentPage(-1));
+els.ownerCommentNext?.addEventListener("click", () => changeOwnerCommentPage(1));
 
 initApp();
 
@@ -108,7 +123,7 @@ async function fetchMemos() {
     if (!response.ok) return [];
 
     const data = await response.json();
-    return data.memos || [];
+    return (data.memos || []).map(normalizeMemoReactions);
   } catch {
     return loadMemos();
   }
@@ -392,16 +407,19 @@ async function saveMemo(event) {
       }
 
       const savedMemo = await sendMemoRequest(`/api/memos/${encodeURIComponent(existing.id)}`, "PUT", payload);
-      Object.assign(existing, savedMemo);
+      Object.assign(existing, normalizeMemoReactions(savedMemo));
     } else {
       const memo = await sendMemoRequest("/api/memos", "POST", payload);
-      state.memos.unshift(memo);
+      state.memos.unshift(normalizeMemoReactions(memo));
       state.activeId = memo.id;
     }
 
     persistMemos();
     renderList();
     renderEditor();
+    if (state.activeId) {
+      loadOwnerReactions(state.activeId);
+    }
   } catch (error) {
     state.memos = JSON.parse(previousMemos);
     alert(error.message || "메모를 저장하지 못했습니다. 사진 용량을 줄이거나 다시 시도해 주세요.");
@@ -689,6 +707,7 @@ function buildShareText(memo) {
 
 function startNewMemo() {
   state.activeId = null;
+  resetOwnerReactions();
   els.title.value = "";
   els.body.value = "";
   els.rangeSelect.value = "50";
@@ -702,17 +721,20 @@ function selectMemo(id) {
   if (!memo) return;
 
   state.activeId = id;
+  applyMemoReactions(memo);
   els.title.value = memo.title;
   els.body.value = memo.body;
   state.photo = memo.photo;
   els.rangeSelect.value = String(getMemoRangeMeters(memo) || 50);
   renderEditor();
   renderList();
+  loadOwnerReactions(id);
 }
 
 function renderEditor() {
   els.deleteButton.hidden = !state.activeId;
   renderPhoto();
+  renderOwnerReactions();
 }
 
 function clearPhoto() {
@@ -786,6 +808,164 @@ function renderList() {
 
     els.list.append(item);
   });
+}
+
+async function loadOwnerReactions(memoId) {
+  resetOwnerReactions(memoId);
+  applyMemoReactions(state.memos.find((memo) => memo.id === memoId));
+  renderOwnerReactions();
+
+  try {
+    const response = await fetch(`/api/memos/${encodeURIComponent(memoId)}/reactions`, {
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) return;
+
+    const data = await response.json();
+
+    if (state.activeId !== memoId) return;
+
+    state.ownerReactions = {
+      memoId,
+      likeCount: data.likeCount || 0,
+      comments: data.comments || [],
+      page: 0,
+    };
+    const memo = state.memos.find((item) => item.id === memoId);
+    if (memo) {
+      memo.reactions = {
+        likeCount: state.ownerReactions.likeCount,
+        comments: state.ownerReactions.comments,
+      };
+    }
+    renderOwnerReactions();
+  } catch {
+    renderOwnerReactions();
+  }
+}
+
+function normalizeMemoReactions(memo) {
+  return {
+    ...memo,
+    reactions: {
+      likeCount: memo.reactions?.likeCount || 0,
+      likedByViewer: Boolean(memo.reactions?.likedByViewer),
+      comments: memo.reactions?.comments || [],
+    },
+  };
+}
+
+function applyMemoReactions(memo) {
+  if (!memo || !state.activeId) return;
+
+  state.ownerReactions = {
+    memoId: memo.id,
+    likeCount: memo.reactions?.likeCount || 0,
+    comments: memo.reactions?.comments || [],
+    page: 0,
+  };
+}
+
+function resetOwnerReactions(memoId = null) {
+  state.ownerReactions = {
+    memoId,
+    likeCount: 0,
+    comments: [],
+    page: 0,
+  };
+}
+
+function renderOwnerReactions() {
+  if (!els.ownerReactionPanel) return;
+
+  if (!state.activeId || state.ownerReactions.memoId !== state.activeId) {
+    els.ownerReactionPanel.hidden = !state.activeId;
+    els.ownerLikeCount.textContent = "0개";
+    els.ownerCommentCount.textContent = "0개";
+    els.ownerCommentPage.textContent = "1 / 1";
+    els.ownerCommentList.innerHTML = "";
+    els.ownerCommentList.append(createOwnerEmptyComment());
+    els.ownerCommentPrev.disabled = true;
+    els.ownerCommentNext.disabled = true;
+    return;
+  }
+
+  const reactions = state.ownerReactions;
+  const pageSize = 5;
+  const totalPages = Math.max(1, Math.ceil(reactions.comments.length / pageSize));
+  reactions.page = Math.min(reactions.page, totalPages - 1);
+  const start = reactions.page * pageSize;
+  const visibleComments = reactions.comments.slice(start, start + pageSize);
+
+  els.ownerReactionPanel.hidden = false;
+  els.ownerLikeCount.textContent = `${reactions.likeCount}개`;
+  els.ownerCommentCount.textContent = `${reactions.comments.length}개`;
+  els.ownerCommentPage.textContent = `${reactions.page + 1} / ${totalPages}`;
+  els.ownerCommentList.innerHTML = "";
+
+  if (visibleComments.length === 0) {
+    els.ownerCommentList.append(createOwnerEmptyComment());
+  } else {
+    visibleComments.forEach((comment) => {
+      const item = document.createElement("article");
+      item.className = "owner-comment-item";
+
+      const header = document.createElement("div");
+      header.className = "owner-comment-meta";
+
+      const name = document.createElement("strong");
+      name.textContent = comment.userName || "익명";
+
+      const date = document.createElement("span");
+      date.textContent = formatCommentDate(comment.createdAt);
+
+      const body = document.createElement("p");
+      body.textContent = comment.body;
+
+      header.append(name, date);
+      item.append(header, body);
+      els.ownerCommentList.append(item);
+    });
+  }
+
+  els.ownerCommentPrev.disabled = reactions.page <= 0;
+  els.ownerCommentNext.disabled = reactions.page >= totalPages - 1;
+}
+
+function createOwnerEmptyComment() {
+  const empty = document.createElement("p");
+  empty.className = "owner-empty-comments";
+  empty.textContent = "아직 댓글이 없습니다.";
+  return empty;
+}
+
+function changeOwnerCommentPage(delta) {
+  if (!state.activeId || state.ownerReactions.memoId !== state.activeId) return;
+
+  const totalPages = Math.max(1, Math.ceil(state.ownerReactions.comments.length / 5));
+  state.ownerReactions.page = Math.min(
+    totalPages - 1,
+    Math.max(0, state.ownerReactions.page + delta),
+  );
+  renderOwnerReactions();
+}
+
+function formatCommentDate(value) {
+  if (!value) return "";
+
+  try {
+    return new Intl.DateTimeFormat("ko-KR", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(value));
+  } catch {
+    return "";
+  }
 }
 
 function getSelectedRange() {

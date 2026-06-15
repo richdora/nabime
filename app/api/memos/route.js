@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../../../lib/auth";
 import { memoPayloadToData, toClientMemo } from "../../../lib/memoMapper";
 import { prisma } from "../../../lib/prisma";
+import { getMemoReactions } from "../../../lib/reactions";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -20,7 +21,14 @@ export async function GET() {
     },
   });
 
-  return Response.json({ memos: memos.map(toClientMemo) });
+  const clientMemos = await Promise.all(
+    memos.map(async (memo) => ({
+      ...toClientMemo(memo),
+      reactions: await getMemoReactions(prisma, memo.id, session.user),
+    })),
+  );
+
+  return Response.json({ memos: clientMemos });
 }
 
 export async function POST(request) {
