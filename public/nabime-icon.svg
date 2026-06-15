@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Nabime icon">
+  <rect width="512" height="512" rx="112" fill="#0f4f66"/>
+  <path d="M112 158h288c18 0 32 14 32 32v164c0 18-14 32-32 32H112c-18 0-32-14-32-32V190c0-18 14-32 32-32Z" fill="#f8fafc"/>
+  <path d="M92 190l164 116 164-116" fill="none" stroke="#176b87" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M152 354V198h42l124 156V198h42v156h-42L194 198v156h-42Z" fill="#0f4f66"/>
+  <circle cx="384" cy="364" r="44" fill="#d7a33d"/>
+  <path d="M384 342v32" fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="384" cy="394" r="8" fill="#ffffff"/>
+</svg>
