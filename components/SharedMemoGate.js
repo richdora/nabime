@@ -1,7 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const RANGE_LABELS = {
   50: "50m",
@@ -18,6 +18,8 @@ export default function SharedMemoGate({ memo, isOwner, isSignedIn, initialReact
   const [commentText, setCommentText] = useState("");
   const [isSavingReaction, setIsSavingReaction] = useState(false);
   const [loginPrompt, setLoginPrompt] = useState("");
+  const [distanceInfo, setDistanceInfo] = useState(null);
+  const [isCheckingDistance, setIsCheckingDistance] = useState(false);
   const [reactions, setReactions] = useState(
     initialReactions || {
       likeCount: 0,
@@ -25,6 +27,12 @@ export default function SharedMemoGate({ memo, isOwner, isSignedIn, initialReact
       comments: [],
     },
   );
+
+  useEffect(() => {
+    if (!isOwner && !isRevealed) {
+      checkDistance();
+    }
+  }, [isOwner, isRevealed]);
 
   async function revealBody() {
     if (!memo.location || !memo.rangeMeters) {
@@ -140,13 +148,87 @@ export default function SharedMemoGate({ memo, isOwner, isSignedIn, initialReact
     }
   }
 
+  async function checkDistance() {
+    if (!memo.location) {
+      setDistanceInfo({
+        status: "error",
+        message: "사진 위치정보가 없습니다.",
+      });
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      setDistanceInfo({
+        status: "error",
+        message: "이 브라우저에서는 현재 위치 확인을 사용할 수 없습니다.",
+      });
+      return;
+    }
+
+    setIsCheckingDistance(true);
+
+    try {
+      const current = await getBrowserLocation();
+      const distance = getDistanceMeters(current, memo.location);
+
+      setDistanceInfo({
+        status: "ready",
+        current,
+        target: memo.location,
+        distance,
+      });
+    } catch {
+      setDistanceInfo({
+        status: "error",
+        message: "현재 위치를 확인하지 못했습니다. 브라우저 위치 권한을 허용한 뒤 다시 눌러주세요.",
+      });
+    } finally {
+      setIsCheckingDistance(false);
+    }
+  }
+
   return (
     <>
       <p className="lock-message">{message}</p>
       {!isRevealed ? (
-        <button className="primary-button" type="button" onClick={revealBody} disabled={isChecking}>
-          {isChecking ? "위치 확인 중" : "내용보기"}
-        </button>
+        <>
+          <section className="distance-panel" aria-label="사진과의 거리">
+            {distanceInfo?.status === "ready" ? (
+              <>
+                <dl>
+                  <div>
+                    <dt>현재 위치</dt>
+                    <dd>{formatCoordinate(distanceInfo.current)}</dd>
+                  </div>
+                  <div>
+                    <dt>사진 위치</dt>
+                    <dd>{formatCoordinate(distanceInfo.target)}</dd>
+                  </div>
+                  <div>
+                    <dt>사진과의 거리</dt>
+                    <dd>{formatDistance(distanceInfo.distance)}</dd>
+                  </div>
+                </dl>
+              </>
+            ) : (
+              <p>{isCheckingDistance ? "현재 위치를 확인하고 있습니다." : distanceInfo?.message || "현재 위치를 확인하면 사진과의 거리를 볼 수 있습니다."}</p>
+            )}
+            <button className="distance-button" type="button" onClick={checkDistance} disabled={isCheckingDistance}>
+              {isCheckingDistance ? "거리 확인 중" : "사진과의 거리확인"}
+            </button>
+          </section>
+          <button className="primary-button" type="button" onClick={revealBody} disabled={isChecking}>
+            {isChecking ? "위치 확인 중" : "비밀 메모 보기"}
+          </button>
+          <aside className="location-help" aria-label="위치정보 설정 안내">
+            <p>비밀메모를 확인하려면 브라우저의 위치정보 사용을 허용해야 합니다.</p>
+            <ul>
+              <li>iPhone Safari: 주소창의 가가 또는 페이지 설정에서 위치를 허용해 주세요.</li>
+              <li>Mac Safari: Safari 설정의 웹사이트, 위치에서 Nabime를 허용해 주세요.</li>
+              <li>Chrome: 주소창 왼쪽 설정 아이콘에서 위치 권한을 허용해 주세요.</li>
+            </ul>
+          </aside>
+        </>
       ) : null}
       {isRevealed ? <div className="shared-body">{body}</div> : null}
       {isRevealed ? (
@@ -243,4 +325,27 @@ function formatDistance(meters) {
   }
 
   return `${Math.round(meters)}m`;
+}
+
+function formatCoordinate(location) {
+  return `${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}`;
+}
+
+function getDistanceMeters(from, to) {
+  const radius = 6371000;
+  const lat1 = toRadians(from.latitude);
+  const lat2 = toRadians(to.latitude);
+  const deltaLat = toRadians(to.latitude - from.latitude);
+  const deltaLon = toRadians(to.longitude - from.longitude);
+
+  const a =
+    Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return radius * c;
+}
+
+function toRadians(degrees) {
+  return (degrees * Math.PI) / 180;
 }

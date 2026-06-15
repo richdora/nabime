@@ -94,6 +94,79 @@ textarea {
   line-height: 1.6;
 }
 
+.location-help {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--muted);
+}
+
+.location-help p {
+  margin: 0 0 10px;
+  color: var(--ink);
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.location-help ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.location-help li {
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+.distance-panel {
+  padding: 14px;
+  border: 1px solid var(--success-line);
+  border-radius: 8px;
+  background: var(--success-bg);
+}
+
+.distance-panel dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.distance-panel div {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.distance-panel dt {
+  color: var(--accent-dark);
+  font-weight: 800;
+}
+
+.distance-panel dd,
+.distance-panel p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.distance-button {
+  min-height: 36px;
+  margin-top: 12px;
+  padding: 0 12px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--accent-dark);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.distance-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .shared-body {
   padding: 16px;
   border: 1px solid var(--line);
