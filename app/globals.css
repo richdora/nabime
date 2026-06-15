@@ -82,6 +82,14 @@ textarea {
   gap: 16px;
 }
 
+.shared-sender {
+  margin: 0 0 -6px;
+  color: var(--accent-dark);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
 .shared-content h2 {
   margin: 0;
   font-size: 28px;

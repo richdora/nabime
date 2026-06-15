@@ -20,7 +20,6 @@ export default async function SharedMemoPage({ params }) {
       <main className="shared-view">
         <section className="shared-shell">
           <header className="shared-header">
-            <p className="eyebrow">Shared memo</p>
             <h1>Nabime</h1>
           </header>
           <article className="shared-card single">
@@ -41,12 +40,12 @@ export default async function SharedMemoPage({ params }) {
   const memo = toClientMemo(memoRecord);
   const publicMemo = isOwner ? memo : { ...memo, body: "" };
   const reactions = await getMemoReactions(prisma, memo.id, session?.user);
+  const senderName = getSenderName(memo);
 
   return (
     <main className="shared-view">
       <section className="shared-shell">
         <header className="shared-header">
-          <p className="eyebrow">Shared memo</p>
           <h1>Nabime</h1>
         </header>
 
@@ -55,6 +54,7 @@ export default async function SharedMemoPage({ params }) {
             <img className="shared-image" src={memo.photo.dataUrl} alt="공유된 메모 사진" />
           ) : null}
           <div className="shared-content">
+            <p className="shared-sender">{senderName}님이 보낸 비밀메모</p>
             <h2>{memo.title}</h2>
             <SharedMemoGate
               memo={publicMemo}
@@ -74,4 +74,12 @@ function isMemoOwner(memo, user) {
 
   const userId = user.id || user.email;
   return memo.ownerId === userId || memo.ownerEmail === user.email;
+}
+
+function getSenderName(memo) {
+  if (memo.ownerEmail) {
+    return memo.ownerEmail.split("@")[0];
+  }
+
+  return memo.ownerName || "누군가";
 }
