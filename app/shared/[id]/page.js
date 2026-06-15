@@ -8,6 +8,55 @@ import { getMemoReactions } from "../../../lib/reactions";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+  const memo = await prisma.memo.findUnique({
+    where: { id },
+  });
+
+  if (!memo) {
+    return {
+      title: "Nabime",
+      description: "공유된 비밀메모를 찾을 수 없습니다.",
+    };
+  }
+
+  const senderName = getSenderName(memo);
+  const title = `${senderName}님이 보낸 비밀메모`;
+  const description = `${senderName}님이 공유한 비밀메모를 확인해 보세요!`;
+  const baseUrl = getBaseUrl();
+  const url = `${baseUrl}/shared/${encodeURIComponent(id)}`;
+  const imageUrl = `${baseUrl}/api/memos/${encodeURIComponent(id)}/image`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: "Nabime",
+      images: memo.photoDataUrl
+        ? [
+            {
+              url: imageUrl,
+              width: 1200,
+              height: 900,
+              alt: "Nabime 비밀메모 사진",
+            },
+          ]
+        : [],
+      type: "article",
+    },
+    twitter: {
+      card: memo.photoDataUrl ? "summary_large_image" : "summary",
+      title,
+      description,
+      images: memo.photoDataUrl ? [imageUrl] : [],
+    },
+  };
+}
+
 export default async function SharedMemoPage({ params }) {
   const { id } = await params;
   const session = await getServerSession(authOptions);
@@ -82,4 +131,8 @@ function getSenderName(memo) {
   }
 
   return memo.ownerName || "누군가";
+}
+
+function getBaseUrl() {
+  return (process.env.NEXTAUTH_URL || "https://nabime.vercel.app").replace(/\/$/, "");
 }
