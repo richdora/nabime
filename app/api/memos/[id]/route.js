@@ -4,6 +4,7 @@ import { memoPayloadToData, toClientMemo } from "../../../../lib/memoMapper";
 import { prisma } from "../../../../lib/prisma";
 
 export async function GET(_request, { params }) {
+  const session = await getServerSession(authOptions);
   const { id } = await params;
   const memo = await prisma.memo.findUnique({
     where: { id },
@@ -13,7 +14,11 @@ export async function GET(_request, { params }) {
     return Response.json({ error: "메모를 찾을 수 없습니다." }, { status: 404 });
   }
 
-  return Response.json({ memo: toClientMemo(memo) });
+  const clientMemo = toClientMemo(memo);
+
+  return Response.json({
+    memo: isOwner(memo, session?.user) ? clientMemo : { ...clientMemo, body: "" },
+  });
 }
 
 export async function PUT(request, { params }) {

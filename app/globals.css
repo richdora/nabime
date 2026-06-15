@@ -60,6 +60,10 @@ textarea {
   align-items: start;
 }
 
+.shared-card.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .shared-image {
   width: 100%;
   aspect-ratio: 4 / 3;
@@ -93,6 +97,20 @@ textarea {
   background: #ffffff;
   line-height: 1.7;
   white-space: pre-wrap;
+}
+
+.primary-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #ffffff;
+  font-weight: 800;
+  text-decoration: none;
 }
 
 .memo-panel {

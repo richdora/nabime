@@ -487,10 +487,7 @@ async function shareCurrentMemo() {
 }
 
 function getShareUrl(id) {
-  const url = new URL(window.location.origin);
-  url.searchParams.set("shared", id);
-  url.hash = "";
-  return url.toString();
+  return new URL(`/shared/${encodeURIComponent(id)}`, window.location.origin).toString();
 }
 
 function openCurrentMemoMap() {
