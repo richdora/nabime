@@ -8,7 +8,7 @@ export default function Home() {
         <section className="memo-panel" aria-label="메모 작성">
           <header className="topbar">
             <div>
-              <p className="eyebrow">Private memo</p>
+              <p className="eyebrow">나만의 비밀메모</p>
               <h1>Nabime</h1>
             </div>
             <div className="topbar-actions">
@@ -22,12 +22,12 @@ export default function Home() {
           <form id="memoForm" className="editor">
             <label className="field">
               <span>제목</span>
-              <input id="titleInput" name="title" type="text" placeholder="오늘의 메모" autoComplete="off" />
+              <input id="titleInput" name="title" type="text" placeholder="비밀메모 제목" autoComplete="off" />
             </label>
 
             <label className="field body-field">
               <span>내용</span>
-              <textarea id="bodyInput" name="body" placeholder="생각을 적어두세요" />
+              <textarea id="bodyInput" name="body" placeholder="비밀스럽게 전달할 생각을 적어두세요" />
             </label>
 
             <div className="attachment-row">
@@ -37,7 +37,7 @@ export default function Home() {
                 사진 첨부
               </button>
               <div id="photoStatus" className="photo-status">
-                첨부된 사진 없음
+                첨부된 사진 없음 · 위치 정보가 있는 사진을 첨부하세요!
               </div>
             </div>
 
@@ -112,6 +112,7 @@ export default function Home() {
           <div className="search-wrap">
             <input id="searchInput" type="search" placeholder="메모 검색" />
           </div>
+          <h2 className="list-title">내 메모</h2>
           <div id="memoList" className="memo-list" />
         </aside>
       </main>

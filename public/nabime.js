@@ -5,6 +5,7 @@ const RANGE_LABELS = {
   1000: "1km",
   10000: "10km",
 };
+const EMPTY_PHOTO_STATUS = "첨부된 사진 없음 · 위치 정보가 있는 사진을 첨부하세요!";
 
 const state = {
   memos: [],
@@ -745,7 +746,7 @@ function clearPhoto() {
 function renderPhoto() {
   if (!state.photo?.dataUrl || !state.photo?.gps) {
     state.photo = null;
-    els.photoStatus.textContent = "첨부된 사진 없음";
+    els.photoStatus.textContent = EMPTY_PHOTO_STATUS;
     els.photoPreview.hidden = true;
     els.rangeField.hidden = true;
     els.rangeSelect.value = "50";
@@ -806,12 +807,6 @@ function renderList() {
     text.append(title, body);
     summary.append(text);
     item.append(summary);
-
-    if (memo.ownerEmail) {
-      const owner = document.createElement("small");
-      owner.textContent = isMemoOwner(memo) ? "내 메모" : `작성자 ${memo.ownerName || memo.ownerEmail}`;
-      item.append(owner);
-    }
 
     const reactions = memo.reactions || {};
     const reactionMeta = document.createElement("div");
