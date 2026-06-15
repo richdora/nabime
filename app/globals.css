@@ -16,6 +16,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -485,21 +489,22 @@ h1 {
 
 .photo-preview {
   display: grid;
-  grid-template-columns: 76px minmax(0, 1fr) 36px;
+  grid-template-columns: 96px minmax(0, 1fr) 40px;
   align-items: center;
-  gap: 14px;
-  max-width: 560px;
-  padding: 10px;
+  gap: 16px;
+  max-width: 640px;
+  padding: 14px;
   border: 1px solid var(--success-line);
   border-radius: 8px;
   background: var(--success-bg);
 }
 
 .photo-preview img {
-  width: 76px;
-  height: 76px;
+  width: 96px;
+  height: 96px;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: 8px;
+  background: #ffffff;
 }
 
 .photo-preview strong,

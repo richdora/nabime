@@ -743,7 +743,8 @@ function clearPhoto() {
 }
 
 function renderPhoto() {
-  if (!state.photo) {
+  if (!state.photo?.dataUrl || !state.photo?.gps) {
+    state.photo = null;
     els.photoStatus.textContent = "첨부된 사진 없음";
     els.photoPreview.hidden = true;
     els.rangeField.hidden = true;
