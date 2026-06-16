@@ -396,6 +396,19 @@ textarea {
   text-transform: uppercase;
 }
 
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-icon {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 auto;
+  border-radius: 14px;
+}
+
 h1 {
   margin: 0;
   font-size: clamp(30px, 4vw, 48px);

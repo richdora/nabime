@@ -69,7 +69,10 @@ export default async function SharedMemoPage({ params }) {
       <main className="shared-view">
         <section className="shared-shell">
           <header className="shared-header">
-            <h1>Nabime</h1>
+            <div className="brand-lockup">
+              <img className="brand-icon" src="/nabime-icon.svg" alt="" aria-hidden="true" />
+              <h1>Nabime</h1>
+            </div>
           </header>
           <article className="shared-card single">
             <div className="shared-content">
@@ -95,7 +98,10 @@ export default async function SharedMemoPage({ params }) {
     <main className="shared-view">
       <section className="shared-shell">
         <header className="shared-header">
-          <h1>Nabime</h1>
+          <div className="brand-lockup">
+            <img className="brand-icon" src="/nabime-icon.svg" alt="" aria-hidden="true" />
+            <h1>Nabime</h1>
+          </div>
         </header>
 
         <article className={`shared-card ${memo.photo?.dataUrl ? "" : "single"}`}>

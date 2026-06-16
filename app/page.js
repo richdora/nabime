@@ -7,9 +7,12 @@ export default function Home() {
       <main id="appShell" className="app-shell">
         <section className="memo-panel" aria-label="메모 작성">
           <header className="topbar">
-            <div>
-              <p className="eyebrow">나만의 비밀메모</p>
-              <h1>Nabime</h1>
+            <div className="brand-lockup">
+              <img className="brand-icon" src="/nabime-icon.svg" alt="" aria-hidden="true" />
+              <div>
+                <p className="eyebrow">나만의 비밀메모</p>
+                <h1>Nabime</h1>
+              </div>
             </div>
             <div className="topbar-actions">
               <AuthControls />
