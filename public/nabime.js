@@ -54,7 +54,6 @@ const els = {
   ownerLikeCount: document.querySelector("#ownerLikeCount"),
   ownerLikePopup: document.querySelector("#ownerLikePopup"),
   ownerLikeList: document.querySelector("#ownerLikeList"),
-  ownerCommentCount: document.querySelector("#ownerCommentCount"),
   ownerCommentPage: document.querySelector("#ownerCommentPage"),
   ownerCommentList: document.querySelector("#ownerCommentList"),
   ownerCommentPrev: document.querySelector("#ownerCommentPrev"),
@@ -915,11 +914,10 @@ function renderOwnerReactions() {
 
   if (!state.activeId || state.ownerReactions.memoId !== state.activeId) {
     els.ownerReactionPanel.hidden = !state.activeId;
-    els.ownerLikeCount.textContent = "0개";
+    els.ownerLikeCount.textContent = "♥ 0개";
     els.ownerLikeToggle?.setAttribute("aria-expanded", "false");
     if (els.ownerLikePopup) els.ownerLikePopup.hidden = true;
     if (els.ownerLikeList) els.ownerLikeList.innerHTML = "";
-    els.ownerCommentCount.textContent = "0개";
     els.ownerCommentPage.textContent = "1 / 1";
     els.ownerCommentList.innerHTML = "";
     els.ownerCommentList.append(createOwnerEmptyComment());
@@ -936,10 +934,9 @@ function renderOwnerReactions() {
   const visibleComments = reactions.comments.slice(start, start + pageSize);
 
   els.ownerReactionPanel.hidden = false;
-  els.ownerLikeCount.textContent = `${reactions.likeCount}개`;
+  els.ownerLikeCount.textContent = `♥ ${reactions.likeCount}개`;
   els.ownerLikeToggle?.setAttribute("aria-expanded", reactions.likesOpen ? "true" : "false");
   renderOwnerLikePopup(reactions);
-  els.ownerCommentCount.textContent = `${reactions.comments.length}개`;
   els.ownerCommentPage.textContent = `${reactions.page + 1} / ${totalPages}`;
   els.ownerCommentList.innerHTML = "";
 

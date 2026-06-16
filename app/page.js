@@ -82,14 +82,15 @@ export default function Home() {
 
             <section id="ownerReactionPanel" className="owner-reaction-panel" hidden>
               <div className="owner-reaction-summary">
-                <button id="ownerLikeToggle" className="owner-like-toggle" type="button" aria-expanded="false">
-                  <span>받은 하트</span>
-                  <strong id="ownerLikeCount">0개</strong>
+                <button
+                  id="ownerLikeToggle"
+                  className="owner-like-toggle"
+                  type="button"
+                  aria-expanded="false"
+                  title="하트를 누른 사람 보기"
+                >
+                  <strong id="ownerLikeCount">♥ 0개</strong>
                 </button>
-                <div>
-                  <span>댓글</span>
-                  <strong id="ownerCommentCount">0개</strong>
-                </div>
               </div>
 
               <div id="ownerLikePopup" className="owner-like-popup" hidden>
