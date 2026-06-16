@@ -3,7 +3,7 @@ import Link from "next/link";
 import AdminMemoVisibilityButton from "../../../../components/AdminMemoVisibilityButton";
 import { authOptions } from "../../../../lib/auth";
 import { isAdminUser } from "../../../../lib/admin";
-import { getUserDisplayName } from "../../../../lib/adminData";
+import { formatMemoSerial, getUserDisplayName } from "../../../../lib/adminData";
 import { prisma } from "../../../../lib/prisma";
 
 function formatDate(value) {
@@ -63,7 +63,6 @@ export default async function AdminUserDetailPage({ params }) {
       },
       select: {
         id: true,
-        title: true,
         photoName: true,
         latitude: true,
         longitude: true,
@@ -137,7 +136,7 @@ export default async function AdminUserDetailPage({ params }) {
         <div className="admin-section-title">
           <div>
             <h2>작성한 메모</h2>
-            <p className="admin-note">관리자 화면에서는 비밀메모 본문을 표시하지 않습니다.</p>
+            <p className="admin-note">관리자 화면에서는 비밀메모 제목과 본문을 표시하지 않습니다.</p>
           </div>
           <span>{email}</span>
         </div>
@@ -147,7 +146,7 @@ export default async function AdminUserDetailPage({ params }) {
             memos.map((memo) => (
               <article className={`admin-list-item memo-admin-item${memo.hiddenAt ? " is-hidden" : ""}`} key={memo.id}>
                 <div>
-                  <strong>{memo.title || "제목 없는 메모"}</strong>
+                  <strong>{formatMemoSerial(memo.id)}</strong>
                   <p>
                     {memo.photoName ? "사진 있음" : "사진 없음"} ·{" "}
                     {memo.latitude !== null && memo.longitude !== null ? "위치 있음" : "위치 없음"} ·{" "}

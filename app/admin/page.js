@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { authOptions } from "../../lib/auth";
 import { isAdminUser } from "../../lib/admin";
+import { formatMemoSerial } from "../../lib/adminData";
 import { prisma } from "../../lib/prisma";
 
 function formatDate(value) {
@@ -75,7 +76,6 @@ export default async function AdminPage() {
       take: 10,
       select: {
         id: true,
-        title: true,
         ownerEmail: true,
         ownerName: true,
         rangeMeters: true,
@@ -99,7 +99,7 @@ export default async function AdminPage() {
         createdAt: true,
         memo: {
           select: {
-            title: true,
+            id: true,
             ownerEmail: true,
           },
         },
@@ -159,7 +159,7 @@ export default async function AdminPage() {
               recentMemos.map((memo) => (
                 <article className="admin-list-item" key={memo.id}>
                   <div>
-                    <strong>{memo.title || "제목 없는 메모"}</strong>
+                    <strong>{formatMemoSerial(memo.id)}</strong>
                     <p>{memo.ownerName || memo.ownerEmail}</p>
                   </div>
                   <div className="admin-meta">
@@ -190,7 +190,7 @@ export default async function AdminPage() {
                     <p>{comment.body}</p>
                   </div>
                   <div className="admin-meta">
-                    <span>{comment.memo.title}</span>
+                    <span>{formatMemoSerial(comment.memo.id)}</span>
                     <span>주인 {comment.memo.ownerEmail.split("@")[0]}</span>
                     <time>{formatDate(comment.createdAt)}</time>
                   </div>
