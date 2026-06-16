@@ -997,6 +997,15 @@ h1 {
   line-height: 1.6;
 }
 
+.admin-current-user {
+  padding: 12px;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: var(--accent-dark) !important;
+  font-weight: 800;
+  word-break: break-all;
+}
+
 .admin-section-title {
   display: flex;
   align-items: center;

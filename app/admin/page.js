@@ -57,6 +57,7 @@ export default async function AdminPage() {
           <img className="brand-icon small" src="/nabime-icon.svg" alt="" aria-hidden="true" />
           <h1>접근할 수 없습니다</h1>
           <p>현재 로그인한 계정은 Nabime 관리자 계정으로 등록되어 있지 않습니다.</p>
+          <p className="admin-current-user">현재 로그인: {session.user.email}</p>
           <Link className="secondary-link" href="/">
             Nabime으로 돌아가기
           </Link>
