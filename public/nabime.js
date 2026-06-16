@@ -1,9 +1,13 @@
 const STORAGE_KEY = "memo-place-items";
 const RANGE_LABELS = {
+  20: "20m",
   50: "50m",
   100: "100m",
+  300: "300m",
   1000: "1km",
   10000: "10km",
+  100000: "100km",
+  500000: "500km",
 };
 const EMPTY_PHOTO_STATUS = "첨부된 사진 없음 · 위치 정보가 있는 사진을 첨부하세요!";
 
@@ -719,7 +723,7 @@ function startNewMemo() {
   resetOwnerReactions();
   els.title.value = "";
   els.body.value = "";
-  els.rangeSelect.value = "50";
+  els.rangeSelect.value = "20";
   clearPhoto();
   renderEditor();
   renderList();
@@ -734,7 +738,7 @@ function selectMemo(id) {
   els.title.value = memo.title;
   els.body.value = memo.body;
   state.photo = memo.photo;
-  els.rangeSelect.value = String(getMemoRangeMeters(memo) || 50);
+  els.rangeSelect.value = String(getMemoRangeMeters(memo) || 20);
   renderEditor();
   renderList();
   loadOwnerReactions(id);
@@ -757,7 +761,7 @@ function renderPhoto() {
     els.photoStatus.textContent = EMPTY_PHOTO_STATUS;
     els.photoPreview.hidden = true;
     els.rangeField.hidden = true;
-    els.rangeSelect.value = "50";
+    els.rangeSelect.value = "20";
     els.previewImage.removeAttribute("src");
     els.gpsText.textContent = "";
     return;
@@ -1059,10 +1063,14 @@ function getMemoRangeMeters(memo) {
   if (Number.isFinite(memo.range?.meters)) return memo.range.meters;
 
   const legacyRanges = {
+    "20m": 20,
     "50m": 50,
     "100m": 100,
+    "300m": 300,
     "1km": 1000,
     "10km": 10000,
+    "100km": 100000,
+    "500km": 500000,
   };
 
   return legacyRanges[memo.range] || null;

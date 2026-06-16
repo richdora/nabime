@@ -61,10 +61,14 @@ export default function Home() {
             <label id="rangeField" className="field range-field" hidden>
               <span>열람가능 범위(range)</span>
               <select id="rangeSelect" name="range">
+                <option value="20">20m</option>
                 <option value="50">50m</option>
                 <option value="100">100m</option>
+                <option value="300">300m</option>
                 <option value="1000">1km</option>
                 <option value="10000">10km</option>
+                <option value="100000">100km</option>
+                <option value="500000">500km</option>
               </select>
             </label>
 

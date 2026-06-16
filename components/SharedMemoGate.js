@@ -4,10 +4,14 @@ import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 const RANGE_LABELS = {
+  20: "20m",
   50: "50m",
   100: "100m",
+  300: "300m",
   1000: "1km",
   10000: "10km",
+  100000: "100km",
+  500000: "500km",
 };
 
 export default function SharedMemoGate({ memo, isOwner, isSignedIn, initialReactions }) {
