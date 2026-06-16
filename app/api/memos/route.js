@@ -14,6 +14,7 @@ export async function GET() {
   const ownerId = session.user.id || session.user.email;
   const memos = await prisma.memo.findMany({
     where: {
+      hiddenAt: null,
       OR: [{ ownerId }, { ownerEmail: session.user.email }],
     },
     orderBy: {

@@ -7,10 +7,11 @@ export async function GET(_request, { params }) {
     select: {
       photoDataUrl: true,
       photoType: true,
+      hiddenAt: true,
     },
   });
 
-  if (!memo?.photoDataUrl) {
+  if (!memo?.photoDataUrl || memo.hiddenAt) {
     return new Response("Not found", { status: 404 });
   }
 

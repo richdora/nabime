@@ -21,6 +21,9 @@ model Memo {
   ownerId     String
   ownerEmail  String
   ownerName   String?
+  hiddenAt    DateTime?
+  hiddenBy    String?
+  hiddenReason String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   likes       MemoLike[]

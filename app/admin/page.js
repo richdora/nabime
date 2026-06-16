@@ -119,9 +119,14 @@ export default async function AdminPage() {
             <h1>관리자 페이지</h1>
           </div>
         </div>
-        <Link className="secondary-link" href="/">
-          메모 화면으로
-        </Link>
+        <div className="admin-header-actions">
+          <Link className="secondary-link" href="/admin/users">
+            사용자 목록
+          </Link>
+          <Link className="secondary-link" href="/">
+            메모 화면으로
+          </Link>
+        </div>
       </header>
 
       <section className="admin-stats" aria-label="서비스 현황">

@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../lib/auth";
+import { isAdminUser } from "../../../../lib/admin";
 import { memoPayloadToData, toClientMemo } from "../../../../lib/memoMapper";
 import { prisma } from "../../../../lib/prisma";
 
@@ -10,7 +11,7 @@ export async function GET(_request, { params }) {
     where: { id },
   });
 
-  if (!memo) {
+  if (!memo || (memo.hiddenAt && !isAdminUser(session?.user))) {
     return Response.json({ error: "메모를 찾을 수 없습니다." }, { status: 404 });
   }
 

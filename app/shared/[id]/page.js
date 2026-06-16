@@ -14,7 +14,7 @@ export async function generateMetadata({ params }) {
     where: { id },
   });
 
-  if (!memo) {
+  if (!memo || memo.hiddenAt) {
     return {
       title: "Nabime",
       description: "공유된 비밀메모를 찾을 수 없습니다.",
@@ -64,7 +64,7 @@ export default async function SharedMemoPage({ params }) {
     where: { id },
   });
 
-  if (!memoRecord) {
+  if (!memoRecord || memoRecord.hiddenAt) {
     return (
       <main className="shared-view">
         <section className="shared-shell">

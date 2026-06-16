@@ -8,7 +8,7 @@ export async function POST(request, { params }) {
     where: { id },
   });
 
-  if (!memo) {
+  if (!memo || memo.hiddenAt) {
     return Response.json({ error: "메모를 찾을 수 없습니다." }, { status: 404 });
   }
 
