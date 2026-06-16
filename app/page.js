@@ -30,7 +30,7 @@ export default function Home() {
 
             <label className="field body-field">
               <span>내용</span>
-              <textarea id="bodyInput" name="body" placeholder="비밀스럽게 전달할 생각을 적어두세요" />
+              <textarea id="bodyInput" name="body" placeholder="전달한 내용을 적어보세요." />
             </label>
 
             <div className="attachment-row">
