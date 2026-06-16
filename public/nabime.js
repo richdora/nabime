@@ -16,8 +16,10 @@ const state = {
   ownerReactions: {
     memoId: null,
     likeCount: 0,
+    likes: [],
     comments: [],
     page: 0,
+    likesOpen: false,
   },
 };
 
@@ -48,7 +50,10 @@ const els = {
   revealButton: document.querySelector("#revealButton"),
   sharedBody: document.querySelector("#sharedBody"),
   ownerReactionPanel: document.querySelector("#ownerReactionPanel"),
+  ownerLikeToggle: document.querySelector("#ownerLikeToggle"),
   ownerLikeCount: document.querySelector("#ownerLikeCount"),
+  ownerLikePopup: document.querySelector("#ownerLikePopup"),
+  ownerLikeList: document.querySelector("#ownerLikeList"),
   ownerCommentCount: document.querySelector("#ownerCommentCount"),
   ownerCommentPage: document.querySelector("#ownerCommentPage"),
   ownerCommentList: document.querySelector("#ownerCommentList"),
@@ -66,6 +71,7 @@ els.deleteButton.addEventListener("click", deleteActiveMemo);
 els.newMemoButton.addEventListener("click", startNewMemo);
 els.search.addEventListener("input", renderList);
 els.revealButton.addEventListener("click", revealSharedMemo);
+els.ownerLikeToggle?.addEventListener("click", toggleOwnerLikeList);
 els.ownerCommentPrev?.addEventListener("click", () => changeOwnerCommentPage(-1));
 els.ownerCommentNext?.addEventListener("click", () => changeOwnerCommentPage(1));
 
@@ -849,13 +855,16 @@ async function loadOwnerReactions(memoId) {
     state.ownerReactions = {
       memoId,
       likeCount: data.likeCount || 0,
+      likes: data.likes || [],
       comments: data.comments || [],
       page: 0,
+      likesOpen: false,
     };
     const memo = state.memos.find((item) => item.id === memoId);
     if (memo) {
       memo.reactions = {
         likeCount: state.ownerReactions.likeCount,
+        likes: state.ownerReactions.likes,
         comments: state.ownerReactions.comments,
       };
     }
@@ -871,6 +880,7 @@ function normalizeMemoReactions(memo) {
     reactions: {
       likeCount: memo.reactions?.likeCount || 0,
       likedByViewer: Boolean(memo.reactions?.likedByViewer),
+      likes: memo.reactions?.likes || [],
       comments: memo.reactions?.comments || [],
     },
   };
@@ -882,8 +892,10 @@ function applyMemoReactions(memo) {
   state.ownerReactions = {
     memoId: memo.id,
     likeCount: memo.reactions?.likeCount || 0,
+    likes: memo.reactions?.likes || [],
     comments: memo.reactions?.comments || [],
     page: 0,
+    likesOpen: false,
   };
 }
 
@@ -891,8 +903,10 @@ function resetOwnerReactions(memoId = null) {
   state.ownerReactions = {
     memoId,
     likeCount: 0,
+    likes: [],
     comments: [],
     page: 0,
+    likesOpen: false,
   };
 }
 
@@ -902,6 +916,9 @@ function renderOwnerReactions() {
   if (!state.activeId || state.ownerReactions.memoId !== state.activeId) {
     els.ownerReactionPanel.hidden = !state.activeId;
     els.ownerLikeCount.textContent = "0개";
+    els.ownerLikeToggle?.setAttribute("aria-expanded", "false");
+    if (els.ownerLikePopup) els.ownerLikePopup.hidden = true;
+    if (els.ownerLikeList) els.ownerLikeList.innerHTML = "";
     els.ownerCommentCount.textContent = "0개";
     els.ownerCommentPage.textContent = "1 / 1";
     els.ownerCommentList.innerHTML = "";
@@ -920,6 +937,8 @@ function renderOwnerReactions() {
 
   els.ownerReactionPanel.hidden = false;
   els.ownerLikeCount.textContent = `${reactions.likeCount}개`;
+  els.ownerLikeToggle?.setAttribute("aria-expanded", reactions.likesOpen ? "true" : "false");
+  renderOwnerLikePopup(reactions);
   els.ownerCommentCount.textContent = `${reactions.comments.length}개`;
   els.ownerCommentPage.textContent = `${reactions.page + 1} / ${totalPages}`;
   els.ownerCommentList.innerHTML = "";
@@ -951,6 +970,49 @@ function renderOwnerReactions() {
 
   els.ownerCommentPrev.disabled = reactions.page <= 0;
   els.ownerCommentNext.disabled = reactions.page >= totalPages - 1;
+}
+
+function renderOwnerLikePopup(reactions) {
+  if (!els.ownerLikePopup || !els.ownerLikeList) return;
+
+  els.ownerLikePopup.hidden = !reactions.likesOpen;
+  els.ownerLikeList.innerHTML = "";
+
+  if (!reactions.likesOpen) return;
+
+  if (!reactions.likes.length) {
+    const empty = document.createElement("p");
+    empty.className = "owner-empty-comments";
+    empty.textContent = "아직 하트를 누른 사람이 없습니다.";
+    els.ownerLikeList.append(empty);
+    return;
+  }
+
+  reactions.likes.forEach((like) => {
+    const item = document.createElement("div");
+    item.className = "owner-like-item";
+
+    const name = document.createElement("strong");
+    name.textContent = formatGoogleId(like.userEmail || like.userName);
+
+    const date = document.createElement("span");
+    date.textContent = formatCommentDate(like.createdAt);
+
+    item.append(name, date);
+    els.ownerLikeList.append(item);
+  });
+}
+
+function toggleOwnerLikeList() {
+  if (!state.activeId || state.ownerReactions.memoId !== state.activeId) return;
+
+  state.ownerReactions.likesOpen = !state.ownerReactions.likesOpen;
+  renderOwnerReactions();
+}
+
+function formatGoogleId(value) {
+  if (!value) return "익명";
+  return String(value).split("@")[0] || value;
 }
 
 function createOwnerEmptyComment() {
